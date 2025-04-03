@@ -9,26 +9,26 @@ using System.Security.Claims;
 
 namespace ID.Controllers
 {
+    [Route("[controller]/[action]")]
     [ApiController]
-    [Route("connect")]
-    public class AuthController : ControllerBase
+    public class ConnectController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
 
-        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public ConnectController(UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
         }
 
-        [HttpPost("token")]
-        public async Task<IActionResult> Exchange()
+        [HttpPost]
+        public async Task<IActionResult> Token()
         {
             var request = HttpContext.GetOpenIddictServerRequest();
 
             if (request.IsPasswordGrantType())
-                await IsPass(request);
+                return await IsPass(request);
 
             return BadRequest(new { error = "Invalid grant type" });
         }
@@ -36,10 +36,9 @@ namespace ID.Controllers
         private async Task<IActionResult> IsPass(OpenIddictRequest request)
         {
             var user = await _userManager.FindByNameAsync(request.Username);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
-                return Unauthorized(new { error = "Invalid username or password" });
-
             var principal = await _signInManager.CreateUserPrincipalAsync(user);
+            var claimsIdentity = (ClaimsIdentity)principal.Identity;
+            claimsIdentity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, user.Id.ToString()));
             principal.SetScopes(OpenIddictConstants.Scopes.OpenId, OpenIddictConstants.Scopes.Email);
 
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
