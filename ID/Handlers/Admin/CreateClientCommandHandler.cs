@@ -41,7 +41,9 @@ namespace ID.Handlers.Admin
                 foreach (var redirectUri in request?.RedirectUris)
                     application.RedirectUris.Add(new Uri(redirectUri));
                 
-                application.Permissions.Add(string.Join(",", GetPermissions(request.Scopes, request.GrantTypes, /*request.Endpoints*/ null, /*request.ResponseType*/ null)));
+                foreach (var permisssion in GetPermissions(request.Scopes, request.GrantTypes, request.Endpoints, request.ResponseType))
+                    application.Permissions.Add(permisssion);
+                
                 await _manager.CreateAsync(application);
                 
                 return new CreateClientCommandResponse
@@ -122,12 +124,12 @@ namespace ID.Handlers.Admin
         {
             return type switch
             {
-                GrantType.AuthorizationCode => OpenIddictConstants.GrantTypes.AuthorizationCode,
-                GrantType.Implicit => OpenIddictConstants.GrantTypes.Implicit,
-                GrantType.ClientCredentials => OpenIddictConstants.GrantTypes.ClientCredentials,
-                GrantType.ResourceOwnerPassword => OpenIddictConstants.GrantTypes.Password,
-                GrantType.RefreshToken => OpenIddictConstants.GrantTypes.RefreshToken,
-                GrantType.DeviceCode => OpenIddictConstants.GrantTypes.DeviceCode,
+                GrantType.AuthorizationCode => OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
+                GrantType.Implicit => OpenIddictConstants.Permissions.GrantTypes.Implicit,
+                GrantType.ClientCredentials => OpenIddictConstants.Permissions.GrantTypes.ClientCredentials,
+                GrantType.ResourceOwnerPassword => OpenIddictConstants.Permissions.GrantTypes.Password,
+                GrantType.RefreshToken => OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+                GrantType.DeviceCode => OpenIddictConstants.Permissions.GrantTypes.DeviceCode,
             };
         }
 

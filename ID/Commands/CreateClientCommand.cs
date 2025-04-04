@@ -15,8 +15,8 @@ namespace ID.Commands
         public IEnumerable<string>? PostLogoutRedirectUris { get; set; } = [];
         public IEnumerable<Scope>? Scopes { get; set; }
         public IEnumerable<GrantType>? GrantTypes { get; set; }
-        //public IEnumerable<Domain.Enums.Endpoint>? Endpoints { get; set; }
-        //public ResponseType ResponseType { get; set; }
+        public IEnumerable<Domain.Enums.Endpoint>? Endpoints { get; set; }
+        public ResponseType? ResponseType { get; set; }
         public IEnumerable<Requerment> Requerments { get; set; } = [];
     }
 

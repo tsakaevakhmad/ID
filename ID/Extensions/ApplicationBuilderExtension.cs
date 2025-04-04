@@ -3,6 +3,7 @@ using ID.Domain.Entity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
+using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
 using System.Runtime.CompilerServices;
 
@@ -31,24 +32,25 @@ namespace ID.Extesions
                            .SetUserInfoEndpointUris("/connect/userinfo")
                            .SetIntrospectionEndpointUris("/connect/introspect")
                            .SetRevocationEndpointUris("/connect/revoke")
-                           .SetPushedAuthorizationEndpointUris("connect/par")
+                           //.SetPushedAuthorizationEndpointUris("connect/par")
                            .IgnoreEndpointPermissions()
                            .IgnoreResponseTypePermissions();
 
-                    options.AllowPasswordFlow();
-                    options.AllowRefreshTokenFlow();
-                    options.AllowClientCredentialsFlow();
-                    options.AllowAuthorizationCodeFlow();
-                    options.SetRefreshTokenLifetime(TimeSpan.FromDays(3));
-                    options.SetAccessTokenLifetime(TimeSpan.FromHours(1));
+                    options.AllowPasswordFlow()
+                    .AllowRefreshTokenFlow()
+                    .AllowClientCredentialsFlow()
+                    .AllowAuthorizationCodeFlow();
 
-                    options.DisableTokenStorage();
+                    options.SetRefreshTokenLifetime(TimeSpan.FromDays(3))
+                    .SetAccessTokenLifetime(TimeSpan.FromHours(1))
+                    .DisableTokenStorage();
 
-                    options.AddDevelopmentEncryptionCertificate()
-                           .AddDevelopmentSigningCertificate();
+                    options.AddDevelopmentSigningCertificate();
+                    options.AddDevelopmentEncryptionCertificate();
+                    options.DisableAccessTokenEncryption();
 
-                    options.RequireProofKeyForCodeExchange();
-                    options.RequirePushedAuthorizationRequests();
+                   //options.RequireProofKeyForCodeExchange();
+                    //.RequirePushedAuthorizationRequests();
 
                     options.RegisterScopes(
                         OpenIddictConstants.Scopes.OpenId,
@@ -64,7 +66,11 @@ namespace ID.Extesions
                           .EnableAuthorizationEndpointPassthrough()
                           .EnableUserInfoEndpointPassthrough();
 
-                    options.AcceptAnonymousClients();
+                })
+                .AddValidation(options =>
+                {
+                    options.UseLocalServer();
+                    options.UseAspNetCore();
                 });
 
             builder.Services.AddAuthentication(options =>
