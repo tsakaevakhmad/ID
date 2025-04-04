@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
+using OpenIddict.Core;
 using OpenIddict.Server.AspNetCore;
 using System.Linq;
 using System.Security.Claims;
@@ -19,12 +20,18 @@ namespace ID.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IOpenIddictApplicationManager _applicationManager;
+        private readonly IOpenIddictAuthorizationManager _authorizationManager;
 
-        public ConnectController(UserManager<User> userManager, SignInManager<User> signInManager, IOpenIddictApplicationManager applicationManager)
+        public ConnectController(
+            UserManager<User> userManager, 
+            SignInManager<User> signInManager, 
+            IOpenIddictApplicationManager applicationManager, 
+            IOpenIddictAuthorizationManager authorizationManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _applicationManager = applicationManager;
+            _authorizationManager = authorizationManager;
         }
 
         [HttpPost]
@@ -48,6 +55,7 @@ namespace ID.Controllers
         [HttpPost]
         public async Task<IActionResult> Authorize()
         {
+            
             var request = HttpContext.GetOpenIddictServerRequest() ??
                   throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
             

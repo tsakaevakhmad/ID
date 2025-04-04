@@ -43,13 +43,14 @@ namespace ID.Extesions
 
                     options.SetRefreshTokenLifetime(TimeSpan.FromDays(3))
                     .SetAccessTokenLifetime(TimeSpan.FromHours(1))
+                    .SetAuthorizationCodeLifetime(TimeSpan.FromMinutes(1))
                     .DisableTokenStorage();
 
                     options.AddDevelopmentSigningCertificate();
                     options.AddDevelopmentEncryptionCertificate();
                     options.DisableAccessTokenEncryption();
 
-                   //options.RequireProofKeyForCodeExchange();
+                    //options.RequireProofKeyForCodeExchange();
                     //.RequirePushedAuthorizationRequests();
 
                     options.RegisterScopes(
