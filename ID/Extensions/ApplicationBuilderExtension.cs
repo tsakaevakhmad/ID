@@ -50,7 +50,7 @@ namespace ID.Extesions
                     options.AddDevelopmentEncryptionCertificate();
                     options.DisableAccessTokenEncryption();
 
-                    //options.RequireProofKeyForCodeExchange();
+                    options.RequireProofKeyForCodeExchange();
                     //.RequirePushedAuthorizationRequests();
 
                     options.RegisterScopes(
@@ -62,6 +62,7 @@ namespace ID.Extesions
                         OpenIddictConstants.Scopes.Phone,
                         OpenIddictConstants.Scopes.Roles
                         );
+
                     options.UseAspNetCore()
                           .EnableTokenEndpointPassthrough()
                           .EnableAuthorizationEndpointPassthrough()

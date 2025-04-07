@@ -42,8 +42,8 @@ namespace ID.Controllers
             if (request.IsPasswordGrantType())
                 return await IsPass(request);
 
-            if (request.IsAuthorizationCodeFlow())
-                return await IsPass(request);
+            if (request.IsAuthorizationCodeGrantType())
+                return await IsCode(request);
 
             if (request.IsClientCredentialsGrantType())
                 return await IsClientCredentials(request);
@@ -68,7 +68,7 @@ namespace ID.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(OpenIddictConstants.Claims.Subject, User.Identity.Name),
+                new Claim(OpenIddictConstants.Claims.Subject, User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value),
                 new Claim(OpenIddictConstants.Claims.Email, User.FindFirstValue(ClaimTypes.Email))
             };
 
@@ -118,6 +118,40 @@ namespace ID.Controllers
             principal.SetScopes(vScopes);
 
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
+        private async Task<IActionResult> IsCode(OpenIddictRequest request)
+        {
+            var principal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+            if (principal == null)
+            {
+                return BadRequest(new { error = "Invalid authorization code" });
+            }
+
+            var userId = principal.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest(new { error = "Invalid user" });
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return BadRequest(new { error = "User not found" });
+            }
+
+            // Создаем новый `ClaimsPrincipal` для токенов
+            var newPrincipal = await _signInManager.CreateUserPrincipalAsync(user);
+
+            var identity = (ClaimsIdentity)newPrincipal.Identity;
+            identity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, userId));
+
+            // Устанавливаем разрешенные скоупы
+            var scopes = request.GetScopes();
+            newPrincipal.SetScopes(scopes);
+
+            // Генерируем `access_token` и `id_token`
+            return SignIn(newPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
     }
 }
