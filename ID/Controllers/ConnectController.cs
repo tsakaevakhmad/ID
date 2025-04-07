@@ -106,7 +106,7 @@ namespace ID.Controllers
         {
             try
             {
-                return SignIn(await GenerateUserClaims(request), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                return SignIn(await GenerateUserClaims(request, "refresh_token"), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
             catch(Exception ex)
             {
@@ -118,7 +118,7 @@ namespace ID.Controllers
         {
             try
             {
-                return SignIn(await GenerateUserClaims(request), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                return SignIn(await GenerateUserClaims(request, "code"), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
             catch (Exception ex)
             {
@@ -126,11 +126,11 @@ namespace ID.Controllers
             }
         }
 
-        private async Task<ClaimsPrincipal> GenerateUserClaims(OpenIddictRequest request)
+        private async Task<ClaimsPrincipal> GenerateUserClaims(OpenIddictRequest request, string requestType)
         {
             var principal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
             if (principal == null)
-                throw new Exception("Invalid code or refresh_token");
+                throw new Exception($"Invalid {requestType}");
 
             var userId = principal.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
             if (string.IsNullOrEmpty(userId))
