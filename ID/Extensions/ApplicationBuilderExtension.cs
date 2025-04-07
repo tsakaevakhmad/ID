@@ -29,29 +29,30 @@ namespace ID.Extesions
                 {
                     options.SetAuthorizationEndpointUris("/connect/authorize")
                            .SetTokenEndpointUris("/connect/token")
+                           .SetDeviceAuthorizationEndpointUris("/connect/device")
+                           .SetEndUserVerificationEndpointUris("/connect/verify")
                            .SetUserInfoEndpointUris("/connect/userinfo")
                            .SetIntrospectionEndpointUris("/connect/introspect")
                            .SetRevocationEndpointUris("/connect/revoke")
-                           //.SetPushedAuthorizationEndpointUris("connect/par")
+                           .SetPushedAuthorizationEndpointUris("connect/par")
                            .IgnoreEndpointPermissions()
                            .IgnoreResponseTypePermissions();
 
                     options.AllowPasswordFlow()
                     .AllowRefreshTokenFlow()
                     .AllowClientCredentialsFlow()
+                    .AllowDeviceAuthorizationFlow()
                     .AllowAuthorizationCodeFlow();
 
                     options.SetRefreshTokenLifetime(TimeSpan.FromDays(3))
                     .SetAccessTokenLifetime(TimeSpan.FromHours(1))
                     .SetAuthorizationCodeLifetime(TimeSpan.FromMinutes(1))
                     .DisableTokenStorage();
+                    options.EnableDegradedMode(); // Для device authorization flow
 
                     options.AddDevelopmentSigningCertificate();
                     options.AddDevelopmentEncryptionCertificate();
                     options.DisableAccessTokenEncryption();
-
-                    options.RequireProofKeyForCodeExchange();
-                    //.RequirePushedAuthorizationRequests();
 
                     options.RegisterScopes(
                         OpenIddictConstants.Scopes.OpenId,

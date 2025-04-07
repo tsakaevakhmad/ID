@@ -117,6 +117,7 @@ namespace ID.Handlers.Admin
                 Scope.Profile => OpenIddictConstants.Permissions.Scopes.Profile,
                 Scope.Phone => OpenIddictConstants.Permissions.Scopes.Phone,
                 Scope.Address => OpenIddictConstants.Permissions.Scopes.Address,
+                Scope.OfflineAccess => OpenIddictConstants.Permissions.Prefixes.Scope + Scopes.OfflineAccess,
             };
         }
 

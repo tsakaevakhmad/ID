@@ -13,6 +13,7 @@ namespace ID.Domain.Enums
         Profile,
         Phone,
         Address,
+        OfflineAccess,
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

@@ -52,6 +52,9 @@ namespace ID.Controllers
             if (request.IsRefreshTokenGrantType())
                 return await IsRefreshToken(request);
 
+            if (request.IsDeviceCodeGrantType())
+                return await IsDeviceCodeGrantType(request);
+
             return BadRequest(new { error = "Invalid grant type" });
         }
 
@@ -82,6 +85,21 @@ namespace ID.Controllers
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Device()
+        {
+            var request = HttpContext.GetOpenIddictServerRequest();
+            if (request is null)
+                return BadRequest(new { error = "Invalid request" });
+
+            var application = await _applicationManager.FindByClientIdAsync(request.ClientId);
+            if (application is null)
+                return BadRequest(new { error = "Invalid client_id" });
+
+            return SignIn(new ClaimsPrincipal(new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)),
+                OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
         private async Task<IActionResult> IsPass(OpenIddictRequest request)
         {
             var user = await _userManager.FindByNameAsync(request.Username);
@@ -89,7 +107,9 @@ namespace ID.Controllers
             await AddScopes(principal, request);
             var claimsIdentity = (ClaimsIdentity)principal.Identity;
             claimsIdentity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, user.Id.ToString()));
+            
             await _signInManager.SignInAsync(user, isPersistent: true);
+            
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
@@ -124,6 +144,20 @@ namespace ID.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        private async Task<IActionResult> IsDeviceCodeGrantType(OpenIddictRequest request)
+        {
+            var authorization = await _authorizationManager.FindByIdAsync(request.DeviceCode);
+            if (authorization is null)
+                return BadRequest(new { error = "invalid_grant", error_description = "Invalid device_code." });
+
+            var status = await _authorizationManager.GetStatusAsync(authorization);
+            if (status != OpenIddictConstants.Statuses.Valid)
+                return BadRequest(new { error = "authorization_pending", error_description = "User has not yet authorized the request." });
+
+            var principal = await GenerateUserClaims(request, "device_code");
+            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
         private async Task<ClaimsPrincipal> GenerateUserClaims(OpenIddictRequest request, string requestType)
