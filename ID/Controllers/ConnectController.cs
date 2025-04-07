@@ -1,4 +1,5 @@
 ﻿using ID.Domain.Entity;
+using MediatR;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -48,6 +49,9 @@ namespace ID.Controllers
             if (request.IsClientCredentialsGrantType())
                 return await IsClientCredentials(request);
 
+            if (request.IsRefreshTokenGrantType())
+                return await IsRefreshToken(request);
+
             return BadRequest(new { error = "Invalid grant type" });
         }
 
@@ -55,7 +59,6 @@ namespace ID.Controllers
         [HttpPost]
         public async Task<IActionResult> Authorize()
         {
-            
             var request = HttpContext.GetOpenIddictServerRequest() ??
                   throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
             
@@ -68,14 +71,13 @@ namespace ID.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(OpenIddictConstants.Claims.Subject, User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value),
-                new Claim(OpenIddictConstants.Claims.Email, User.FindFirstValue(ClaimTypes.Email))
+                new Claim(OpenIddictConstants.Claims.Subject, User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value)
             };
 
             var identity = new ClaimsIdentity(claims, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
 
-            principal.SetScopes(request.GetScopes());
+            await AddScopes(principal, request);
 
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
@@ -84,19 +86,9 @@ namespace ID.Controllers
         {
             var user = await _userManager.FindByNameAsync(request.Username);
             var principal = await _signInManager.CreateUserPrincipalAsync(user);
+            await AddScopes(principal, request);
             var claimsIdentity = (ClaimsIdentity)principal.Identity;
             claimsIdentity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, user.Id.ToString()));
-
-            var client = await _applicationManager.FindByClientIdAsync(request.ClientId);
-            var scopes = (await _applicationManager.GetPermissionsAsync(client))
-                .Where(x => x.StartsWith(OpenIddictConstants.Permissions.Prefixes.Scope));
-            scopes = scopes.Select(x => x[OpenIddictConstants.Permissions.Prefixes.Scope.Length..]);
-            var vScopes = new List<string>();
-            foreach (var scope in request.Scope.Split(" "))
-                if (scopes.Contains(scope))
-                    vScopes.Add(scope);
-            principal.SetScopes(vScopes);
-
             await _signInManager.SignInAsync(user, isPersistent: true);
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
@@ -106,7 +98,58 @@ namespace ID.Controllers
             var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             identity.AddClaim(OpenIddictConstants.Claims.Subject, request.ClientId);
             var principal = new ClaimsPrincipal(identity);
+            await AddScopes(principal, request);
+            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
 
+        private async Task<IActionResult> IsRefreshToken(OpenIddictRequest request)
+        {
+            try
+            {
+                return SignIn(await GenerateUserClaims(request), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        private async Task<IActionResult> IsCode(OpenIddictRequest request)
+        {
+            try
+            {
+                return SignIn(await GenerateUserClaims(request), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        private async Task<ClaimsPrincipal> GenerateUserClaims(OpenIddictRequest request)
+        {
+            var principal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+            if (principal == null)
+                throw new Exception("Invalid code or refresh_token");
+
+            var userId = principal.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                throw new Exception("Invalid user");
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            var newPrincipal = await _signInManager.CreateUserPrincipalAsync(user);
+            var identity = (ClaimsIdentity)newPrincipal.Identity;
+            identity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, userId));
+            var scopes = request.GetScopes();
+            newPrincipal.SetScopes(scopes);
+            return newPrincipal;
+        }
+
+        private async Task AddScopes(ClaimsPrincipal principal, OpenIddictRequest request)
+        {
             var client = await _applicationManager.FindByClientIdAsync(request.ClientId);
             var scopes = (await _applicationManager.GetPermissionsAsync(client))
                 .Where(x => x.StartsWith(OpenIddictConstants.Permissions.Prefixes.Scope));
@@ -116,42 +159,6 @@ namespace ID.Controllers
                 if (scopes.Contains(scope))
                     vScopes.Add(scope);
             principal.SetScopes(vScopes);
-
-            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-        }
-
-        private async Task<IActionResult> IsCode(OpenIddictRequest request)
-        {
-            var principal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
-            if (principal == null)
-            {
-                return BadRequest(new { error = "Invalid authorization code" });
-            }
-
-            var userId = principal.FindFirst(OpenIddictConstants.Claims.Subject)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return BadRequest(new { error = "Invalid user" });
-            }
-
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                return BadRequest(new { error = "User not found" });
-            }
-
-            // Создаем новый `ClaimsPrincipal` для токенов
-            var newPrincipal = await _signInManager.CreateUserPrincipalAsync(user);
-
-            var identity = (ClaimsIdentity)newPrincipal.Identity;
-            identity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, userId));
-
-            // Устанавливаем разрешенные скоупы
-            var scopes = request.GetScopes();
-            newPrincipal.SetScopes(scopes);
-
-            // Генерируем `access_token` и `id_token`
-            return SignIn(newPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
     }
 }
