@@ -46,9 +46,9 @@ namespace ID.Extesions
 
                     options.SetRefreshTokenLifetime(TimeSpan.FromDays(3))
                     .SetAccessTokenLifetime(TimeSpan.FromHours(1))
-                    .SetAuthorizationCodeLifetime(TimeSpan.FromMinutes(1))
-                    .DisableTokenStorage();
-                    options.EnableDegradedMode(); // Для device authorization flow
+                    .SetAuthorizationCodeLifetime(TimeSpan.FromMinutes(1));
+                    //.DisableTokenStorage();
+                    //options.EnableDegradedMode(); // Для device authorization flow
 
                     options.AddDevelopmentSigningCertificate();
                     options.AddDevelopmentEncryptionCertificate();

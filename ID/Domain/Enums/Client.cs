@@ -9,6 +9,7 @@ namespace ID.Domain.Enums
     public enum Scope
     {
 
+        OpenId,
         Email,
         Profile,
         Phone,
@@ -76,6 +77,7 @@ namespace ID.Domain.Enums
     public enum Requerment
     {
         PushedAuthorizationRequests,
-        ProofKeyForCodeExchange
+        ProofKeyForCodeExchange,
+        None
     }
 }

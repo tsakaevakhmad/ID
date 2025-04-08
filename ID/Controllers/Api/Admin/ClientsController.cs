@@ -1,5 +1,6 @@
-﻿using ID.Commands;
+﻿using ID.Commands.Admin.Clients;
 using ID.Domain.Dto.Admin;
+using ID.Queries.Admin.Clients;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,19 @@ namespace ID.Controllers.Api.Admin
             try
             {
                 return Ok(await _mediator.Send(command));
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(string id)
+        {
+            try
+            {
+                return Ok(await _mediator.Send(new GetClientDetailsQuery(id)));
             }
             catch
             {
