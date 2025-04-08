@@ -7,11 +7,11 @@ using OpenIddict.Abstractions;
 
 namespace ID.Handlers.Admin.Clients
 {
-    public class GetClientDetailsHandler : IRequestHandler<GetClientDetailsQuery, ClientDto>
+    public class GetClientDetailsQueryHandler : IRequestHandler<GetClientDetailsQuery, ClientDto>
     {
         private readonly IOpenIddictApplicationManager _applicationManager;
 
-        public GetClientDetailsHandler(IOpenIddictApplicationManager applicationManager) 
+        public GetClientDetailsQueryHandler(IOpenIddictApplicationManager applicationManager) 
         {
             _applicationManager = applicationManager;
         }
@@ -26,7 +26,7 @@ namespace ID.Handlers.Admin.Clients
                 {
                     Id = await _applicationManager.GetIdAsync(application),
                     ClientId = await _applicationManager.GetIdAsync(application),
-                    ClientSecret = "****",
+                    ClientSecret = _applicationManager.GetSecreteKeyStatus(application).ToString(),
                     ClientType = _applicationManager.GetClientType(await _applicationManager.GetClientTypeAsync(application)),
                     ApplicationType = _applicationManager.GetApplicationType(await _applicationManager.GetApplicationTypeAsync(application)),
                     ConsentType = _applicationManager.GetConsentType(await _applicationManager.GetConsentTypeAsync(application)),

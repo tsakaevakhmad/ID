@@ -4,7 +4,7 @@ using MediatR;
 
 namespace ID.Queries.Admin.Clients
 {
-    public class GetClientsQuery : IRequest<ClientListDto>
+    public class GetClientsQuery : IRequest<IEnumerable<ClientListDto>>
     {
         public string? ClientId { get; set; }
         public ApplicationType? ApplicationType { get; set; }

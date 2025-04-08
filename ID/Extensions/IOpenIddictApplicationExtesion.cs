@@ -230,5 +230,13 @@ namespace ID.Extensions
                 _ => Requerment.None
             };
         }
+
+        public static SecreteKeyStatus GetSecreteKeyStatus(this IOpenIddictApplicationManager manager, object application)
+        {
+            var app = application as dynamic;
+            if (app.ClientSecret == null)
+                return SecreteKeyStatus.UnSet;
+            return SecreteKeyStatus.Set;
+        }
     }
 }

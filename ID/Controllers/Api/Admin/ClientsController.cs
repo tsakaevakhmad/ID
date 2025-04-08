@@ -46,5 +46,18 @@ namespace ID.Controllers.Api.Admin
                 return BadRequest();
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Search(GetClientsQuery query)
+        {
+            try
+            {
+                return Ok(await _mediator.Send(query));
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
     }
 }

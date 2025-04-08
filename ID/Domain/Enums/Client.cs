@@ -80,4 +80,11 @@ namespace ID.Domain.Enums
         ProofKeyForCodeExchange,
         None
     }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum SecreteKeyStatus
+    {
+        Set,
+        UnSet
+    }
 }
