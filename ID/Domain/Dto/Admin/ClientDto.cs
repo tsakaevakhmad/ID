@@ -26,7 +26,7 @@ namespace ID.Domain.Dto.Admin
         public string ClientId { get; set; }
         public ClientType ClientType { get; set; }
         public ApplicationType ApplicationType { get; set; }
-        public IEnumerable<string> DisplayNames { get; set; }
+        public IEnumerable<DisplayName> DisplayNames { get; set; }
     }
 
     public class Settings

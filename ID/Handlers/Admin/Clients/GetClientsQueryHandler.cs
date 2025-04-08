@@ -23,12 +23,13 @@ namespace ID.Handlers.Admin.Clients
             try
             {
                 IAsyncEnumerable<object> applications = _applicationManager.ListAsync();
-                return applications.ToBlockingEnumerable<dynamic>().Select(x => new ClientListDto
+                return applications.ToBlockingEnumerable<dynamic>(cancellationToken).Select(x => new ClientListDto
                 {
                     ClientId = x.ClientId,
                     ClientType = _applicationManager.GetClientType((string)x.ClientType),
                     ApplicationType = _applicationManager.GetApplicationType((string)x.ApplicationType),
-
+                    DisplayNames = _applicationManager.GetDisplayNamesAsync(x as object).Result
+                    .Select(x => new Domain.Dto.DisplayName { Culture = x.Key.Name, Name = x.Value }),
                 });
             }
             catch
