@@ -88,36 +88,9 @@ namespace ID.Controllers
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Device()
-        {
-            var request = HttpContext.GetOpenIddictServerRequest();
-            if (request is null || string.IsNullOrEmpty(request.ClientId))
-                return BadRequest(new { error = "Invalid request" });
-
-            var application = await _applicationManager.FindByClientIdAsync(request.ClientId);
-            if (application is null)
-                return BadRequest(new { error = "Invalid client_id" });
-
-            // Создаем объект для хранения ответа
-            var response = new OpenIddictResponse();
-
-            return Forbid(
-                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                properties: new AuthenticationProperties(new Dictionary<string, string?>
-                {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = response.Error,
-                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = response.ErrorDescription
-                }));
-        }
-
         [HttpGet]
         public async Task<IActionResult> Verify()
         {
-            var request = HttpContext.GetOpenIddictServerRequest();
-            if (request is null || string.IsNullOrEmpty(request.UserCode))
-                return BadRequest(new { error = "Invalid request" });
-
             var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             if (!result.Succeeded)
                 return Unauthorized(new { error = "Authentication failed" });
