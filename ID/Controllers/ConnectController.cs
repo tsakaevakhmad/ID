@@ -22,17 +22,20 @@ namespace ID.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly IOpenIddictApplicationManager _applicationManager;
         private readonly IOpenIddictAuthorizationManager _authorizationManager;
+        private readonly IOpenIddictScopeManager _scopeManager;
 
         public ConnectController(
             UserManager<User> userManager, 
             SignInManager<User> signInManager, 
             IOpenIddictApplicationManager applicationManager, 
-            IOpenIddictAuthorizationManager authorizationManager)
+            IOpenIddictAuthorizationManager authorizationManager,
+            IOpenIddictScopeManager scopeManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _applicationManager = applicationManager;
             _authorizationManager = authorizationManager;
+            _scopeManager = scopeManager;
         }
 
         [HttpPost]
@@ -89,15 +92,47 @@ namespace ID.Controllers
         public async Task<IActionResult> Device()
         {
             var request = HttpContext.GetOpenIddictServerRequest();
-            if (request is null)
+            if (request is null || string.IsNullOrEmpty(request.ClientId))
                 return BadRequest(new { error = "Invalid request" });
 
             var application = await _applicationManager.FindByClientIdAsync(request.ClientId);
             if (application is null)
                 return BadRequest(new { error = "Invalid client_id" });
 
-            return SignIn(new ClaimsPrincipal(new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)),
-                OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            // Создаем объект для хранения ответа
+            var response = new OpenIddictResponse();
+
+            return Forbid(
+                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                properties: new AuthenticationProperties(new Dictionary<string, string?>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = response.Error,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = response.ErrorDescription
+                }));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Verify()
+        {
+            var request = HttpContext.GetOpenIddictServerRequest();
+            if (request is null || string.IsNullOrEmpty(request.UserCode))
+                return BadRequest(new { error = "Invalid request" });
+
+            var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            if (!result.Succeeded)
+                return Unauthorized(new { error = "Authentication failed" });
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+                return BadRequest(new { error = "User not found" });
+
+            var principal = await _signInManager.CreateUserPrincipalAsync(user);
+            var identity = (ClaimsIdentity)principal.Identity;
+            identity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, user.Id));
+            principal.SetScopes(result.Principal.GetScopes());
+            principal.SetResources(_scopeManager.ListResourcesAsync(principal.GetScopes()).ToBlockingEnumerable().ToArray());
+
+            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
         private async Task<IActionResult> IsPass(OpenIddictRequest request)
@@ -148,14 +183,6 @@ namespace ID.Controllers
 
         private async Task<IActionResult> IsDeviceCodeGrantType(OpenIddictRequest request)
         {
-            var authorization = await _authorizationManager.FindByIdAsync(request.DeviceCode);
-            if (authorization is null)
-                return BadRequest(new { error = "invalid_grant", error_description = "Invalid device_code." });
-
-            var status = await _authorizationManager.GetStatusAsync(authorization);
-            if (status != OpenIddictConstants.Statuses.Valid)
-                return BadRequest(new { error = "authorization_pending", error_description = "User has not yet authorized the request." });
-
             var principal = await GenerateUserClaims(request, "device_code");
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }

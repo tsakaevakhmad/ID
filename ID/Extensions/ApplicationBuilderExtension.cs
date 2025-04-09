@@ -67,7 +67,8 @@ namespace ID.Extesions
                     options.UseAspNetCore()
                           .EnableTokenEndpointPassthrough()
                           .EnableAuthorizationEndpointPassthrough()
-                          .EnableUserInfoEndpointPassthrough();
+                          .EnableUserInfoEndpointPassthrough()
+                          .EnableEndUserVerificationEndpointPassthrough();
 
                 })
                 .AddValidation(options =>
