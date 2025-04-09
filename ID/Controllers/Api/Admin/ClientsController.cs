@@ -59,5 +59,19 @@ namespace ID.Controllers.Api.Admin
                 return BadRequest();
             }
         }
+
+        [HttpPut]
+        public async Task<IActionResult> Update(UpdateClientCommand command)
+        {
+            try
+            {
+                await _mediator.Send(command);
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
     }
 }

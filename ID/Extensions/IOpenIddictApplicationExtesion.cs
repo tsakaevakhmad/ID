@@ -1,7 +1,10 @@
 ﻿using ID.Domain.Enums;
 using OpenIddict.Abstractions;
 using OpenIddict.Core;
+using System.Collections.Immutable;
+using System.Globalization;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using static System.Net.Mime.MediaTypeNames;
 using Endpoint = ID.Domain.Enums.Endpoint;
 
 namespace ID.Extensions
@@ -36,7 +39,7 @@ namespace ID.Extensions
             };
         }
 
-        public static HashSet<string> GetPermissions(this IOpenIddictApplicationManager manager, IEnumerable<Scope>? scopes, IEnumerable<GrantType>? grantTypes, IEnumerable<Domain.Enums.Endpoint>? endpoints, ResponseType? response)
+        public static HashSet<string> GetPermissions(this IOpenIddictApplicationManager manager, IEnumerable<Scope>? scopes, IEnumerable<GrantType>? grantTypes, IEnumerable<Endpoint>? endpoints, ResponseType? response)
         {
             var permissions = new HashSet<string>();
             if (scopes != null)
@@ -52,7 +55,7 @@ namespace ID.Extensions
                     permissions.Add(GetEndpoint(manager, endpoint));
 
             if (response.HasValue)
-                permissions.Add(GetResponseTypes(manager, response.Value));
+                permissions.Add(GetResponseType(manager, response.Value));
 
             return permissions;
         }
@@ -96,7 +99,7 @@ namespace ID.Extensions
             };
         }
 
-        public static string GetResponseTypes(this IOpenIddictApplicationManager manager, ResponseType type)
+        public static string GetResponseType(this IOpenIddictApplicationManager manager, ResponseType type)
         {
             return type switch
             {
@@ -109,7 +112,7 @@ namespace ID.Extensions
             };
         }
 
-        public static string GetRequermentTypes(this IOpenIddictApplicationManager manager, Requerment type)
+        public static string GetRequirementsType(this IOpenIddictApplicationManager manager, Requerment type)
         {
             return type switch
             {
@@ -208,7 +211,7 @@ namespace ID.Extensions
             };
         }
 
-        public static ResponseType GetResponseTypes(this IOpenIddictApplicationManager manager, string type)
+        public static ResponseType GetResponseType(this IOpenIddictApplicationManager manager, string type)
         {
             return type switch
             {
@@ -221,7 +224,7 @@ namespace ID.Extensions
             };
         }
 
-        public static Requerment GetRequermentTypes(this IOpenIddictApplicationManager manager, string type)
+        public static Requerment GetRequirementsType(this IOpenIddictApplicationManager manager, string type)
         {
             return type switch
             {
@@ -237,6 +240,37 @@ namespace ID.Extensions
             if (app.ClientSecret == null)
                 return SecreteKeyStatus.UnSet;
             return SecreteKeyStatus.Set;
+        }
+
+        public static async Task<OpenIddictApplicationModel> AsModelApplication(this IOpenIddictApplicationManager manager, object application)
+        {
+            return new OpenIddictApplicationModel
+            {
+                Id = await manager.GetIdAsync(application),
+                ClientId = await manager.GetClientIdAsync(application),
+                ClientType = await manager.GetClientTypeAsync(application),
+                ApplicationType = await manager.GetApplicationTypeAsync(application),
+                ConsentType = await manager.GetConsentTypeAsync(application),
+                DisplayNames = await manager.GetDisplayNamesAsync(application),
+                RedirectUris = await manager.GetRedirectUrisAsync(application),
+                PostLogoutRedirectUris = await manager.GetPostLogoutRedirectUrisAsync(application),
+                Permissions = await manager.GetPermissionsAsync(application),
+                Requerments = await manager.GetRequirementsAsync(application)
+            };
+        }
+
+        public class OpenIddictApplicationModel
+        {
+            public string? Id { get; set; }
+            public string? ClientId { get; set; }
+            public string? ClientType { get; set; }
+            public string? ApplicationType { get; set; }
+            public string? ConsentType { get; set; }
+            public ImmutableDictionary<CultureInfo, string> DisplayNames { get; set; }
+            public ImmutableArray<string> RedirectUris { get; set; }
+            public ImmutableArray<string> PostLogoutRedirectUris { get; set; }
+            public ImmutableArray<string> Permissions { get; set; }
+            public ImmutableArray<string> Requerments { get; set; }
         }
     }
 }

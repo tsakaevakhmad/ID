@@ -6,6 +6,7 @@ namespace ID.Commands.Admin.Clients
 {
     public class UpdateClientCommand : IRequest
     {
+        public string Id { get; set; }
         public string ClientId { get; set; }
         public ClientType ClientType { get; set; }
         public ApplicationType ApplicationType { get; set; }

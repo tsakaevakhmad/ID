@@ -31,7 +31,7 @@ namespace ID.Handlers.Admin.Clients
                 };
 
                 foreach (var requerment in request.Requerments)
-                    application.Requirements.Add(_manager.GetRequermentTypes(requerment));
+                    application.Requirements.Add(_manager.GetRequirementsType(requerment));
 
                 foreach (var displayName in request?.DisplayNames)
                     application.DisplayNames.Add(new System.Globalization.CultureInfo(displayName.Culture), displayName.Name);
