@@ -64,6 +64,7 @@ namespace ID.Extensions
         {
             return scope switch
             {
+                Scope.OpenId => Permissions.Prefixes.Scope + Scopes.OpenId,
                 Scope.Email => Permissions.Scopes.Email,
                 Scope.Profile => Permissions.Scopes.Profile,
                 Scope.Phone => Permissions.Scopes.Phone,

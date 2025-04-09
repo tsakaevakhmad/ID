@@ -25,7 +25,7 @@ namespace ID.Handlers.Admin.Clients
                 return new ClientDto
                 {
                     Id = await _applicationManager.GetIdAsync(application),
-                    ClientId = await _applicationManager.GetIdAsync(application),
+                    ClientId = await _applicationManager.GetClientIdAsync(application),
                     ClientSecret = _applicationManager.GetSecreteKeyStatus(application).ToString(),
                     ClientType = _applicationManager.GetClientType(await _applicationManager.GetClientTypeAsync(application)),
                     ApplicationType = _applicationManager.GetApplicationType(await _applicationManager.GetApplicationTypeAsync(application)),

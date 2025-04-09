@@ -1,11 +1,7 @@
 ﻿using ID.Commands.Admin.Clients;
-using ID.Domain.Dto.Admin;
 using ID.Queries.Admin.Clients;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using OpenIddict.Abstractions;
-using System.Reflection;
 
 namespace ID.Controllers.Api.Admin
 {
@@ -67,6 +63,19 @@ namespace ID.Controllers.Api.Admin
             {
                 await _mediator.Send(command);
                 return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> RenewKey(RenewClientSecretCommand command)
+        {
+            try
+            {
+                return Ok(new { Secret = await _mediator.Send(command) });
             }
             catch
             {
