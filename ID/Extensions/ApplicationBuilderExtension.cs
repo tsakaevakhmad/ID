@@ -1,4 +1,5 @@
-﻿using ID.Data;
+﻿using ID.Configurations;
+using ID.Data;
 using ID.Domain.Entity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ namespace ID.Extesions
                 .AddRoles<IdentityRole>()
                 .AddRoleManager<RoleManager<IdentityRole>>()
                 .AddEntityFrameworkStores<PgDbContext>()
+                .AddTotpTokenProviders()
                 .AddDefaultTokenProviders();
 
             builder.Services.AddOpenIddict()
