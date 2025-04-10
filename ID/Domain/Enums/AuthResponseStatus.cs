@@ -12,5 +12,7 @@
         UserMailAlreadyExists,
         SendedLoginCodeToEmail,
         SendedLoginCodeToPhoneNumber,
+        Success,
+        InvalidToken,
     }
 }

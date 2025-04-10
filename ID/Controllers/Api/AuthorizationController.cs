@@ -1,5 +1,8 @@
 ﻿using ID.Commands.Admin;
+using ID.Domain.Entity;
+using ID.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
@@ -39,6 +42,33 @@ namespace ID.Controllers.Api
                 if(await _mediator.Send(new MailConfirmationCommand(id, token)))
                     return Redirect($"{_configuration["FrontendRoute"]}/emailconfirmed");
                 return Redirect($"{_configuration["FrontendRoute"]}/emailnotconfirmed");
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> LoginTwoFa(LoginQuery query)
+        {
+            try
+            {
+                return Ok(await _mediator.Send(query));
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> VerifyLoginTwoFa(LoginVerifyQuery query)
+        {
+            try
+            {
+                var result = await _mediator.Send(query);  
+                return Ok(result);
             }
             catch
             {

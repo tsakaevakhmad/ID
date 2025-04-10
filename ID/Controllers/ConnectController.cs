@@ -115,9 +115,6 @@ namespace ID.Controllers
             await AddScopes(principal, request);
             var claimsIdentity = (ClaimsIdentity)principal.Identity;
             claimsIdentity.AddClaim(new Claim(OpenIddictConstants.Claims.Subject, user.Id.ToString()));
-            
-            await _signInManager.SignInAsync(user, isPersistent: true);
-            
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
