@@ -5,6 +5,10 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.GetMainServices();
+
+if (builder.Environment.IsDevelopment())
+    builder.Services.MockServices();
+
 builder.GetServices();
 builder.OpenIddictSettings();
 var app = builder.Build();

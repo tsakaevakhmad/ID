@@ -1,4 +1,7 @@
 ﻿using ID.Data;
+using ID.Interfaces;
+using ID.MappingProfiles;
+using ID.Services;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -9,6 +12,7 @@ namespace ID.Extensions
     {
         public static IServiceCollection GetMainServices(this IServiceCollection services)
         {
+            services.AddAutoMapper(typeof(BaseProfile).Assembly);
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(options =>
             {
@@ -22,6 +26,12 @@ namespace ID.Extensions
                                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
                             });
+            return services;
+        }
+
+        public static IServiceCollection MockServices(this IServiceCollection services)
+        {
+            services.AddTransient<IMailService, EmailServiceMock>();
             return services;
         }
 
