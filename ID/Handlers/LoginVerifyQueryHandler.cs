@@ -29,6 +29,7 @@ namespace ID.Handlers
                 var result = await _userManager.VerifyLoginTokenAsync(user, request.Code);
                 if (result)
                 {
+                    await _signInManager.SignOutAsync();
                     await _signInManager.SignInAsync(user, isPersistent: true);
                     return new LoginVerifyQueryResponse(AuthResponseStatus.Success);
                 }

@@ -1,10 +1,7 @@
 ﻿using ID.Commands.Admin;
-using ID.Domain.Entity;
 using ID.Queries;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 
 namespace ID.Controllers.Api
 {
