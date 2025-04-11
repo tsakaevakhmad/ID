@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Core;
 using OpenIddict.Server.AspNetCore;
@@ -23,19 +25,22 @@ namespace ID.Controllers
         private readonly IOpenIddictApplicationManager _applicationManager;
         private readonly IOpenIddictAuthorizationManager _authorizationManager;
         private readonly IOpenIddictScopeManager _scopeManager;
+        private readonly IConfiguration _configuration;
 
         public ConnectController(
             UserManager<User> userManager, 
             SignInManager<User> signInManager, 
             IOpenIddictApplicationManager applicationManager, 
             IOpenIddictAuthorizationManager authorizationManager,
-            IOpenIddictScopeManager scopeManager)
+            IOpenIddictScopeManager scopeManager,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _applicationManager = applicationManager;
             _authorizationManager = authorizationManager;
             _scopeManager = scopeManager;
+            _configuration = configuration;
         }
 
         [HttpPost]
@@ -73,7 +78,14 @@ namespace ID.Controllers
                 return BadRequest(new { error = "Invalid client_id" });
 
             if (!User.Identity.IsAuthenticated)
-                return Challenge();
+            {
+                var parameters = Base64UrlEncoder.Encode(string.Join("&", request.GetParameters().Select(param =>
+                    $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value.ToString())}")));
+                
+                var redirectUrl = $"{_configuration["FrontendRoute"]}/?params={parameters}";
+
+                return Redirect(redirectUrl);
+            }
 
             var claims = new List<Claim>
             {

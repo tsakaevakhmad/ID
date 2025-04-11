@@ -21,6 +21,14 @@ namespace ID.Extesions
                 .AddTotpTokenProviders()
                 .AddDefaultTokenProviders();
 
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.HttpOnly = false;
+                options.Cookie.SameSite = SameSiteMode.None; 
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  
+                
+            });
+
             builder.Services.AddOpenIddict()
                 .AddCore(options =>
                     {

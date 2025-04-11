@@ -26,7 +26,7 @@ app.UseCors(options =>
     options.AllowAnyHeader();
     options.AllowAnyMethod();
     options.AllowCredentials();
-    options.WithOrigins("http://localhost:3000");
+    options.WithOrigins(app.Configuration["FrontendRoute"]);
 });
 app.UseHttpsRedirection();
 
