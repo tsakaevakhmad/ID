@@ -1,7 +1,5 @@
-version: '3.5'
-
 networks:
-  id:
+  idnet:
     name: idnet
 
 services: 
@@ -13,9 +11,13 @@ services:
       - "5001:81"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - DB=Server=database;Port=5432;Database=postgres;User Id=postgres;Password=postgres;
+      - PG=Server=database;Port=5432;Database=postgres;User Id=postgres;Password=postgres;
     networks:
       - idnet
+    depends_on:
+      - database
+    restart: on-failure
+
 
   database:
     image: postgres:latest
