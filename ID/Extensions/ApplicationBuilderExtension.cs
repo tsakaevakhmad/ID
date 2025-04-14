@@ -80,6 +80,9 @@ namespace ID.Extesions
                           .EnableUserInfoEndpointPassthrough()
                           .EnableEndUserVerificationEndpointPassthrough();
 
+                    if (builder.Environment.IsDevelopment())
+                        options.UseAspNetCore()
+                        .DisableTransportSecurityRequirement();
                 })
                 .AddValidation(options =>
                 {

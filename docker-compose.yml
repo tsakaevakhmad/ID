@@ -7,8 +7,8 @@ services:
     image: ahmadck/id:latest
     container_name: IDServer
     ports:
-      - "5000:80"
-      - "5001:81"
+      - "5000:8080"
+      - "5001:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - PG=Server=database;Port=5432;Database=postgres;User Id=postgres;Password=postgres;
