@@ -4,20 +4,19 @@ networks:
 
 services: 
   backend:
-    image: ahmadck/id:latest
+    image: ahmadck/idserver:latest
     container_name: IDServer
     ports:
-      - "5000:8080"
-      - "5001:8081"
+      - "5000:80"
+      - "5001:81"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - PG=Server=database;Port=5432;Database=postgres;User Id=postgres;Password=postgres;
+      - PG=Server=database;Port=5432;Database=ID;User Id=postgres;Password=postgres;
     networks:
       - idnet
     depends_on:
       - database
-    restart: on-failure
-
+    restart: always
 
   database:
     image: postgres:latest
