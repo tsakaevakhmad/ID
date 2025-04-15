@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using ID.Commands.Admin;
+using ID.Commands;
 using ID.Domain.Entity;
 using ID.Domain.Enums;
 using ID.Interfaces;

@@ -1,4 +1,4 @@
-﻿using ID.Commands.Admin;
+﻿using ID.Commands;
 using ID.Domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;

@@ -4,9 +4,7 @@ using ID.Domain.Entity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
-using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
-using System.Runtime.CompilerServices;
 
 namespace ID.Extesions
 {
@@ -21,12 +19,15 @@ namespace ID.Extesions
                 .AddTotpTokenProviders()
                 .AddDefaultTokenProviders();
 
-            builder.Services.ConfigureApplicationCookie(options =>
+            builder.Services.AddDistributedMemoryCache();
+
+            builder.Services.AddSession(options =>
             {
-                options.Cookie.HttpOnly = false;
+                options.Cookie.Name = ".ID.Session";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
                 options.Cookie.SameSite = SameSiteMode.None; 
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  
-                
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             });
 
             builder.Services.AddOpenIddict()
@@ -95,7 +96,19 @@ namespace ID.Extesions
                 options.DefaultScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
             });
             builder.Services.AddAuthorization();
+            Fido2Configuration(builder);
             return builder;
+        }
+
+        private static void Fido2Configuration(WebApplicationBuilder builder)
+        {
+            builder.Services.AddFido2(options =>
+            {
+                options.ServerDomain = builder.Configuration["Fido2:ServerDomain"];
+                options.ServerName = builder.Configuration["Fido2:ServerName"];
+                options.Origins.Add("http://localhost:5247");
+                options.TimestampDriftTolerance = 30000;
+            });
         }
 
         public static IApplicationBuilder Migrate(this IApplicationBuilder applicationBuilder)

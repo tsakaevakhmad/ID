@@ -1,7 +1,7 @@
 ﻿using ID.Domain.Enums;
 using MediatR;
 
-namespace ID.Commands.Admin
+namespace ID.Commands
 {
     public class RegisterCommand : IRequest<RegisterResponse>
     {

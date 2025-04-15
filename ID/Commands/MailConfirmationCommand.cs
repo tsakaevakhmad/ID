@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace ID.Commands.Admin
+namespace ID.Commands
 {
     public class MailConfirmationCommand : IRequest<bool>
     {

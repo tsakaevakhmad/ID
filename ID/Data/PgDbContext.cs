@@ -1,8 +1,6 @@
 ﻿using ID.Domain.Entity;
-using ID.Extesions;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using OpenIddict.Abstractions;
 
 namespace ID.Data
 {
@@ -12,6 +10,8 @@ namespace ID.Data
         public PgDbContext(DbContextOptions<PgDbContext> options) : base(options) 
         {
         }
+
+        public DbSet<FidoCredential> FidoCredentials { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

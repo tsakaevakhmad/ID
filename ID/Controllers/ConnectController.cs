@@ -82,7 +82,7 @@ namespace ID.Controllers
                 var parameters = Base64UrlEncoder.Encode(string.Join("&", request.GetParameters().Select(param =>
                     $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value.ToString())}")));
                 
-                var redirectUrl = $"{_configuration["FrontendRoute"]}/?params={parameters}";
+                var redirectUrl = $"/?params={parameters}";
 
                 return Redirect(redirectUrl);
             }

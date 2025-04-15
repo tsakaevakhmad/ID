@@ -1,4 +1,4 @@
-﻿using ID.Commands.Admin;
+﻿using ID.Commands;
 using ID.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -37,8 +37,8 @@ namespace ID.Controllers.Api
             try
             {
                 if(await _mediator.Send(new MailConfirmationCommand(id, token)))
-                    return Redirect($"{_configuration["FrontendRoute"]}/emailconfirmed");
-                return Redirect($"{_configuration["FrontendRoute"]}/emailnotconfirmed");
+                    return Redirect($"/emailconfirmed");
+                return Redirect($"/emailnotconfirmed");
             }
             catch
             {
