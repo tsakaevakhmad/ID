@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Fido2NetLib.Objects;
 using ID.Commands;
+using ID.Commands.Passkey;
 using ID.Domain.Entity;
 using System.Buffers.Text;
 

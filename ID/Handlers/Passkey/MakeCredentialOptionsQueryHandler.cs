@@ -32,7 +32,13 @@ namespace ID.Handlers.Passkey
                     Id = Encoding.UTF8.GetBytes(httpUser.FindFirst(x => x.Type == ClaimTypes.NameIdentifier).Value)
                 };
 
-                var options = _fido2.RequestNewCredential(user, new List<PublicKeyCredentialDescriptor>(), AuthenticatorSelection.Default, AttestationConveyancePreference.None, null);
+                var options = _fido2.RequestNewCredential(
+                    user, 
+                    new List<PublicKeyCredentialDescriptor>(),
+                    AuthenticatorSelection.Default, 
+                    AttestationConveyancePreference.None,
+                    null);
+
                 var serialized = JsonSerializer.Serialize(options);
                 _httpContext.Session.SetString("fido2.options", Base64UrlEncoder.Encode(serialized));
                 return Task.FromResult(options);

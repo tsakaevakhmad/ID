@@ -1,12 +1,8 @@
-﻿using AutoMapper;
-using Fido2NetLib;
+﻿using Fido2NetLib;
 using ID.Commands.Passkey;
 using ID.Commands.PassKey;
-using ID.Handlers.Passkey;
 using ID.Queries.Passkey;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ID.Controllers.Api
@@ -37,11 +33,11 @@ namespace ID.Controllers.Api
         }
 
         [HttpPost]
-        public async Task<IActionResult> FinishRegistration(AuthenticatorAttestationRawResponse response)
+        public async Task<IActionResult> FinishRegistration([FromBody] AuthenticatorAttestationRawResponse request)
         {
             try
             {
-                await _mediator.Send(new MakeAssertionCommand(response));
+                await _mediator.Send(new MakeCredentialCommand(request));
                 return Ok();
             }
             catch (Exception ex)

@@ -38,6 +38,7 @@ namespace ID.Handlers.Passkey
                 var options = await _fido2.MakeNewCredentialAsync(request.AttestationResponse, desirializedOptions, isCredentialIdUniqueToUser, null, cancellationToken);
                 await _pgDbContext.FidoCredentials.AddAsync(_mapper.Map<FidoCredential>(options));
                 await _pgDbContext.SaveChangesAsync();
+                _httpContext.Session.Remove("fido2.options");
             }
             catch
             {

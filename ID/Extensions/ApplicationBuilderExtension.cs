@@ -1,4 +1,5 @@
-﻿using ID.Configurations;
+﻿using Fido2NetLib;
+using ID.Configurations;
 using ID.Data;
 using ID.Domain.Entity;
 using Microsoft.AspNetCore.Identity;
@@ -102,12 +103,17 @@ namespace ID.Extesions
 
         private static void Fido2Configuration(WebApplicationBuilder builder)
         {
-            builder.Services.AddFido2(options =>
+            builder.Services.AddScoped<IFido2>(sp =>
             {
-                options.ServerDomain = builder.Configuration["Fido2:ServerDomain"];
-                options.ServerName = builder.Configuration["Fido2:ServerName"];
-                options.Origins.Add("http://localhost:5247");
-                options.TimestampDriftTolerance = 30000;
+                var config = new Fido2Configuration
+                {
+                    ServerDomain = builder.Configuration["Fido2:ServerDomain"],
+                    ServerName = builder.Configuration["Fido2:ServerName"],
+                    Origin = "https://localhost:7253/", // обязательно совпадает с тем, откуда фронт
+                    TimestampDriftTolerance = 300000 // например, 5 минут
+                };
+
+                return new Fido2(config);
             });
         }
 
