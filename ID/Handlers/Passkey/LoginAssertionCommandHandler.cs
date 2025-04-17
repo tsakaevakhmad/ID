@@ -3,7 +3,9 @@ using Fido2NetLib;
 using Fido2NetLib.Objects;
 using ID.Commands.Passkey;
 using ID.Data;
+using ID.Domain.Entity;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
@@ -17,13 +19,15 @@ namespace ID.Handlers.Passkey
         private readonly IMapper _mapper;
         private readonly IFido2 _fido2;
         private readonly HttpContext? _httpContext;
+        private readonly SignInManager<User> _signInManager;
 
-        public LoginAssertionCommandHandler(PgDbContext context, IMapper mapper, IFido2 fido2, IHttpContextAccessor httpContext) 
+        public LoginAssertionCommandHandler(PgDbContext context, IMapper mapper, IFido2 fido2, IHttpContextAccessor httpContext, SignInManager<User> signInManager) 
         {
             _context = context;
             _mapper = mapper;
             _fido2 = fido2;
             _httpContext = httpContext.HttpContext;
+            _signInManager = signInManager;
         }
 
         public async Task Handle(LoginAssertionCommand request, CancellationToken cancellationToken)
@@ -34,14 +38,19 @@ namespace ID.Handlers.Passkey
 
                 var options = Base64UrlEncoder.Decode(_httpContext.Session.GetString("fido2.options"));
                 var desirializedOptions = JsonSerializer.Deserialize<AssertionOptions>(options, jsonOptions);
-
-                var storedCredential = await _context.FidoCredentials.FirstOrDefaultAsync(x => x.CredentialId == Base64Url.Encode(request.Response.Id));
-
-                var res = await _fido2.MakeAssertionAsync(request.Response, desirializedOptions, storedCredential.PublicKey, storedCredential.SignatureCounter, IsUserHandleOwnerOfCredentialId);
-
-                var cred = await _context.FidoCredentials.FirstAsync(x => x.CredentialId == storedCredential.Id);
-                cred.SignatureCounter = res.Counter;
-                await _context.SaveChangesAsync(cancellationToken);
+                var credId = request.Id;
+                var storedCredential = await _context.FidoCredentials.FirstOrDefaultAsync(x => x.CredentialId == credId);
+                var assertResponse = _mapper.Map<AuthenticatorAssertionRawResponse>(request);
+                assertResponse.Response.UserHandle = null;
+                var res = await _fido2.MakeAssertionAsync(assertResponse, desirializedOptions, storedCredential.PublicKey, storedCredential.SignatureCounter, IsUserHandleOwnerOfCredentialId);
+                if(res.Status == "ok")
+                {
+                    var cred = await _context.FidoCredentials.Include(x => x.User).FirstAsync(x => x.CredentialId == storedCredential.CredentialId);
+                    cred.SignatureCounter = res.Counter;
+                    await _context.SaveChangesAsync(cancellationToken);
+                    _httpContext.Session.Remove("fido2.options");
+                    await _signInManager.SignInAsync(cred.User, false);
+                }
             }
             catch
             {

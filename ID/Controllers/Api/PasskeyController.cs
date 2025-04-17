@@ -45,5 +45,33 @@ namespace ID.Controllers.Api
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> BeginLogin(LoginOptionsQuery query)
+        {
+            try
+            {
+                var result = await _mediator.Send(query);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> FinishLogin(LoginAssertionCommand command)
+        {
+            try
+            {
+                await _mediator.Send(command);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

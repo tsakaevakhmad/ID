@@ -7,6 +7,7 @@ using ID.Commands.PassKey;
 using ID.Domain.Entity;
 using Microsoft.IdentityModel.Tokens;
 using System.Buffers.Text;
+using static ID.Commands.Passkey.LoginAssertionCommand;
 using static ID.Commands.PassKey.RegistrationCredentialCommand;
 using Base64Url = System.Buffers.Text.Base64Url;
 
@@ -29,9 +30,19 @@ namespace ID.MappingProfiles
                 .ForMember(x => x.Id, x => x.MapFrom(x => Base64Url.DecodeFromChars(x.Id)))
                 .ForMember(x => x.RawId, x => x.MapFrom(x => Base64Url.DecodeFromChars(x.RawId)));
             
-            CreateMap<ResponseData, Fido2NetLib.AuthenticatorAttestationRawResponse.ResponseData>()
+            CreateMap<ResponseData, AuthenticatorAttestationRawResponse.ResponseData>()
                 .ForMember(x => x.AttestationObject, x => x.MapFrom(x => Base64Url.DecodeFromChars(x.AttestationObject)))
                 .ForMember(x => x.ClientDataJson, x => x.MapFrom(x => Base64Url.DecodeFromChars(x.ClientDataJson)));
+
+            CreateMap<LoginAssertionCommand, AuthenticatorAssertionRawResponse>()
+                .ForMember(x => x.Id, x => x.MapFrom(x => Base64Url.DecodeFromChars(x.Id)))
+                .ForMember(x => x.RawId, x => x.MapFrom(x => Base64Url.DecodeFromChars(x.RawId)));
+
+            CreateMap<AssertionResponse, AuthenticatorAssertionRawResponse.AssertionResponse>()
+                .ForMember(x => x.AuthenticatorData, x => x.MapFrom(x => Base64Url.DecodeFromChars(x.AuthenticatorData)))
+                .ForMember(x => x.Signature, x => x.MapFrom(x => Base64Url.DecodeFromChars(x.Signature)))
+                .ForMember(x => x.ClientDataJson, x => x.MapFrom(x => Base64Url.DecodeFromChars(x.ClientDataJson)))
+                .ForMember(x => x.UserHandle, x => x.MapFrom(x => string.IsNullOrEmpty(x.UserHandle) ? null : Base64Url.DecodeFromChars(x.UserHandle)));
         }
     }
 }
