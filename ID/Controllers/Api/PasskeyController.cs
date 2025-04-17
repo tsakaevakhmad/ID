@@ -23,7 +23,7 @@ namespace ID.Controllers.Api
         {
             try
             {
-                var result = await _mediator.Send(new MakeCredentialsOptionsQuery());
+                var result = await _mediator.Send(new RegistrationCredentialsOptionsQuery());
                 return Ok(result);
             }
             catch (Exception ex)
@@ -33,11 +33,11 @@ namespace ID.Controllers.Api
         }
 
         [HttpPost]
-        public async Task<IActionResult> FinishRegistration([FromBody] AuthenticatorAttestationRawResponse request)
+        public async Task<IActionResult> FinishRegistration([FromBody] RegistrationCredentialCommand request)
         {
             try
             {
-                await _mediator.Send(new MakeCredentialCommand(request));
+                await _mediator.Send(request);
                 return Ok();
             }
             catch (Exception ex)

@@ -9,18 +9,18 @@ using System.Text.Json;
 
 namespace ID.Handlers.Passkey
 {
-    public class MakeCredentialOptionsQueryHandler : IRequestHandler<MakeCredentialsOptionsQuery, CredentialCreateOptions>
+    public class RegistrationCredentialOptionsQueryHandler : IRequestHandler<RegistrationCredentialsOptionsQuery, CredentialCreateOptions>
     {
         private readonly IFido2 _fido2;
         private readonly HttpContext? _httpContext;
 
-        public MakeCredentialOptionsQueryHandler(IFido2 fido2, IHttpContextAccessor httpContextAccessor) 
+        public RegistrationCredentialOptionsQueryHandler(IFido2 fido2, IHttpContextAccessor httpContextAccessor) 
         {
             _fido2 = fido2;
             _httpContext = httpContextAccessor.HttpContext;
         }
 
-        public Task<CredentialCreateOptions> Handle(MakeCredentialsOptionsQuery request, CancellationToken cancellationToken)
+        public Task<CredentialCreateOptions> Handle(RegistrationCredentialsOptionsQuery request, CancellationToken cancellationToken)
         {
             try
             {

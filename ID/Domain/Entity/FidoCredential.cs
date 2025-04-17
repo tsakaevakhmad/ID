@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Fido2NetLib;
+using System.ComponentModel.DataAnnotations;
 
 namespace ID.Domain.Entity
 {
@@ -6,7 +7,6 @@ namespace ID.Domain.Entity
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        public string Username { get; set; } = default!;
         public string CredentialId { get; set; } = default!; // base64url
         public byte[] PublicKey { get; set; } = default!;
         public uint SignatureCounter { get; set; }

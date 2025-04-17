@@ -103,7 +103,14 @@ namespace ID.Extesions
 
         private static void Fido2Configuration(WebApplicationBuilder builder)
         {
-            builder.Services.AddScoped<IFido2>(sp =>
+            builder.Services.AddFido2(opt =>
+            {
+                opt.ServerDomain = builder.Configuration["Fido2:ServerDomain"];
+                opt.ServerName = builder.Configuration["Fido2:ServerName"];
+                opt.Origin = "https://localhost:7253/";
+                opt.TimestampDriftTolerance = 300000;
+            });
+            /*builder.Services.AddScoped<IFido2>(sp =>
             {
                 var config = new Fido2Configuration
                 {
@@ -114,7 +121,7 @@ namespace ID.Extesions
                 };
 
                 return new Fido2(config);
-            });
+            });*/
         }
 
         public static IApplicationBuilder Migrate(this IApplicationBuilder applicationBuilder)

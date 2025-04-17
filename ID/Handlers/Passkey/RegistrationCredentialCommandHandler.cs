@@ -11,14 +11,14 @@ using System.Text.Json;
 
 namespace ID.Handlers.Passkey
 {
-    public class MakeCredentialCommandHandler : IRequestHandler<MakeCredentialCommand>
+    public class RegistrationCredentialCommandHandler : IRequestHandler<RegistrationCredentialCommand>
     {
         private readonly HttpContext? _httpContext;
         private readonly IFido2 _fido2;
         private readonly PgDbContext _pgDbContext;
         private readonly IMapper _mapper;
 
-        public MakeCredentialCommandHandler(IFido2 fido2, PgDbContext pgDbContext, IHttpContextAccessor httpContextAccessor, IMapper mapper)
+        public RegistrationCredentialCommandHandler(IFido2 fido2, PgDbContext pgDbContext, IHttpContextAccessor httpContextAccessor, IMapper mapper)
         {
             _httpContext = httpContextAccessor.HttpContext;
             _fido2 = fido2;
@@ -26,17 +26,18 @@ namespace ID.Handlers.Passkey
             _mapper = mapper;
         }
 
-        public async Task Handle(MakeCredentialCommand request, CancellationToken cancellationToken)
+        public async Task Handle(RegistrationCredentialCommand request, CancellationToken cancellationToken)
         {
             try
             {
                 var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-                var challenge = Base64UrlEncoder.Decode(_httpContext.Session.GetString("fido2.options"));
-                var desirializedOptions = JsonSerializer.Deserialize<CredentialCreateOptions>(challenge, jsonOptions);
+                var options = Base64UrlEncoder.Decode(_httpContext.Session.GetString("fido2.options"));
+                var desirializedOptions = JsonSerializer.Deserialize<CredentialCreateOptions>(options, jsonOptions);
                 var isCredentialIdUniqueToUser = new IsCredentialIdUniqueToUserAsyncDelegate(IsCredentialIdUniqueToUserAsync);
-                var options = await _fido2.MakeNewCredentialAsync(request.AttestationResponse, desirializedOptions, isCredentialIdUniqueToUser, null, cancellationToken);
-                await _pgDbContext.FidoCredentials.AddAsync(_mapper.Map<FidoCredential>(options));
+                var credentialCreationResult = await _fido2.MakeNewCredentialAsync(_mapper.Map<AuthenticatorAttestationRawResponse>(request), desirializedOptions, isCredentialIdUniqueToUser, null, cancellationToken);
+                var mapped = _mapper.Map<FidoCredential>(credentialCreationResult.Result);
+                await _pgDbContext.FidoCredentials.AddAsync(mapped);
                 await _pgDbContext.SaveChangesAsync();
                 _httpContext.Session.Remove("fido2.options");
             }
@@ -50,7 +51,8 @@ namespace ID.Handlers.Passkey
         {
             var base64CredentialId = Base64Url.Encode(credentialIdUserParams.CredentialId);
             var userId = Base64Url.Encode(credentialIdUserParams.User.Id);
-            return await _pgDbContext.FidoCredentials.AnyAsync(x => x.CredentialId == base64CredentialId, cancellationToken);
+            var result = await _pgDbContext.FidoCredentials.AnyAsync(x => x.CredentialId == base64CredentialId, cancellationToken);
+            return !result;
         }
     }
 }

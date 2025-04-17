@@ -4,7 +4,7 @@ using MediatR;
 
 namespace ID.Queries.Passkey
 {
-    public class MakeCredentialsOptionsQuery : IRequest<CredentialCreateOptions>
+    public class RegistrationCredentialsOptionsQuery : IRequest<CredentialCreateOptions>
     {
     }
 }
