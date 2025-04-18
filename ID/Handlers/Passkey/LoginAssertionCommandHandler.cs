@@ -41,7 +41,10 @@ namespace ID.Handlers.Passkey
                 var credId = request.Id;
                 var storedCredential = await _context.FidoCredentials.FirstOrDefaultAsync(x => x.CredentialId == credId);
                 var assertResponse = _mapper.Map<AuthenticatorAssertionRawResponse>(request);
-                assertResponse.Response.UserHandle = null;
+                
+                if(string.IsNullOrEmpty(request.Response.UserHandle))
+                    assertResponse.Response.UserHandle = null;
+
                 var res = await _fido2.MakeAssertionAsync(assertResponse, desirializedOptions, storedCredential.PublicKey, storedCredential.SignatureCounter, IsUserHandleOwnerOfCredentialId);
                 if(res.Status == "ok")
                 {

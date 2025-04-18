@@ -1,6 +1,7 @@
 ﻿using ID.Commands;
 using ID.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ID.Controllers.Api
@@ -71,6 +72,13 @@ namespace ID.Controllers.Api
             {
                 return BadRequest();
             }
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> IsAuthorized()
+        {
+            return Ok(new { Status = "Success" });
         }
     }
 }
