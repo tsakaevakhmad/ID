@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.FileProviders;
+using Polly.CircuitBreaker;
 
 namespace ID.Extensions
 {
@@ -6,7 +7,17 @@ namespace ID.Extensions
     {
         public static void AddFrontEnd(this WebApplication app)
         {
-            var staticFilesPath = app.Configuration["FrontRootFolder"];
+            var proxy = app.Configuration["FrontProxy"];
+            if (!string.IsNullOrEmpty(proxy))
+            {
+                app.UseSpa(spa =>
+                {
+                    spa.UseProxyToSpaDevelopmentServer(proxy);
+                });
+                return;
+            }
+
+            var staticFilesPath = app.Configuration["FrontRootFolder"]; 
             if (!string.IsNullOrEmpty(staticFilesPath))
                 ClientByPass(app, staticFilesPath);
             else
