@@ -30,10 +30,7 @@ namespace ID.Handlers.Passkey
         {
             try
             {
-                var credentials = (await FindUserByIdentifire(request.Identifire))
-                    .FidoCredentials.Select(x => new PublicKeyCredentialDescriptor(Base64Url.Decode(x.CredentialId)));
-
-                var options = _fido2.GetAssertionOptions(credentials, UserVerificationRequirement.Preferred);
+                var options = _fido2.GetAssertionOptions(null, UserVerificationRequirement.Preferred);
                 var serialized = JsonSerializer.Serialize(options);
                 _httpContext.Session.SetString("fido2.options", Base64UrlEncoder.Encode(serialized));
                 return options;
@@ -42,15 +39,6 @@ namespace ID.Handlers.Passkey
             {
                 throw;
             }
-        }
-
-        private async Task<User> FindUserByIdentifire(string identifire)
-        {
-            identifire = identifire.ToUpper();
-            var user = await _userManager.Users
-                .Include(x => x.FidoCredentials)
-                .FirstOrDefaultAsync(x => x.NormalizedEmail == identifire || x.PhoneNumber == identifire);
-            return user;
         }
     }
 }

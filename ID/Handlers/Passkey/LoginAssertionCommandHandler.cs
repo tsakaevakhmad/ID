@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System.Text.Json;
 using static Fido2NetLib.AuthenticatorAssertionRawResponse;
 
@@ -39,7 +40,7 @@ namespace ID.Handlers.Passkey
                 var options = Base64UrlEncoder.Decode(_httpContext.Session.GetString("fido2.options"));
                 var desirializedOptions = JsonSerializer.Deserialize<AssertionOptions>(options, jsonOptions);
                 var credId = request.Id;
-                var storedCredential = await _context.FidoCredentials.FirstOrDefaultAsync(x => x.CredentialId == credId);
+                var storedCredential = await _context.FidoCredentials.Include(x => x.User).FirstOrDefaultAsync(x => x.CredentialId == credId);
                 var assertResponse = _mapper.Map<AuthenticatorAssertionRawResponse>(request);
                 
                 if(string.IsNullOrEmpty(request.Response.UserHandle))
@@ -48,11 +49,10 @@ namespace ID.Handlers.Passkey
                 var res = await _fido2.MakeAssertionAsync(assertResponse, desirializedOptions, storedCredential.PublicKey, storedCredential.SignatureCounter, IsUserHandleOwnerOfCredentialId);
                 if(res.Status == "ok")
                 {
-                    var cred = await _context.FidoCredentials.Include(x => x.User).FirstAsync(x => x.CredentialId == storedCredential.CredentialId);
-                    cred.SignatureCounter = res.Counter;
+                    storedCredential.SignatureCounter = res.Counter;
                     await _context.SaveChangesAsync(cancellationToken);
                     _httpContext.Session.Remove("fido2.options");
-                    await _signInManager.SignInAsync(cred.User, false);
+                    await _signInManager.SignInAsync(storedCredential.User, false);
                 }
             }
             catch
@@ -64,7 +64,7 @@ namespace ID.Handlers.Passkey
         private async Task<bool> IsUserHandleOwnerOfCredentialId(IsUserHandleOwnerOfCredentialIdParams args, CancellationToken cancellationToken = default)
         {
             var base64CredentialId = Base64Url.Encode(args.CredentialId);
-            var base64UserHandle = Base64Url.Encode(args.UserHandle);
+            var base64UserHandle = Encoding.UTF8.GetString(args.UserHandle); 
             var result = await _context.FidoCredentials.AnyAsync(x => x.CredentialId == base64CredentialId && x.UserId == base64UserHandle, cancellationToken);
             return result;
         }
